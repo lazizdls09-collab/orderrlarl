@@ -4,36 +4,33 @@ import { Input } from "@/components/ui/input";
 import { formatSum } from "@/lib/format";
 
 type Unit = "kg" | "l" | "dona";
-
-type Row = { id: number; name: string; price: string; used: string; unit: Unit };
+type Row = { id: number; name: string; price: string; amount: string; unit: Unit };
 
 let nextId = 1;
-const newRow = (): Row => ({ id: nextId++, name: "", price: "", used: "", unit: "kg" });
+const newRow = (): Row => ({ id: nextId++, name: "", price: "", amount: "", unit: "kg" });
 
-/** Bitta ingredientning tannarxi (so'mda). kg/l uchun narx 1 kg/1 l ga, miqdor g/ml da. */
+/** 1 porsiya uchun shu xomashyoning narxi. kg/l: narx 1 kg/1 l uchun, miqdor gramm/ml. dona: narx 1 dona uchun. */
 function rowCost(r: Row) {
   const price = Number(r.price) || 0;
-  const used = Number(r.used) || 0;
-  return r.unit === "dona" ? price * used : (price * used) / 1000;
+  const amount = Number(r.amount) || 0;
+  return r.unit === "dona" ? price * amount : (price * amount) / 1000;
 }
 
-const USED_HINT: Record<Unit, string> = { kg: "gramm", l: "ml", dona: "dona" };
+const AMOUNT_HINT: Record<Unit, string> = { kg: "gramm", l: "ml", dona: "dona" };
 
 export function CostCalculator() {
   const [rows, setRows] = useState<Row[]>(() => [newRow()]);
-  const [portions, setPortions] = useState("1");
-  const [extra, setExtra] = useState("0");
+  const [extra, setExtra] = useState("");
   const [sale, setSale] = useState("");
   const [margin, setMargin] = useState("40");
 
-  const ingredientsTotal = useMemo(() => rows.reduce((s, r) => s + rowCost(r), 0), [rows]);
-  const count = Math.max(Number(portions) || 1, 1);
-  const costPerPortion = ingredientsTotal / count + (Number(extra) || 0);
-  const salePrice = Number(sale) || 0;
-  const profit = salePrice - costPerPortion;
-  const profitPct = salePrice > 0 ? (profit / salePrice) * 100 : 0;
-  const targetPct = Number(margin) || 0;
-  const suggested = targetPct > 0 && targetPct < 100 ? costPerPortion / (1 - targetPct / 100) : 0;
+  const ingredients = useMemo(() => rows.reduce((s, r) => s + rowCost(r), 0), [rows]);
+  const cost = ingredients + (Number(extra) || 0);
+  const price = Number(sale) || 0;
+  const profit = price - cost;
+  const profitPct = price > 0 ? (profit / price) * 100 : 0;
+  const target = Number(margin) || 0;
+  const suggested = target > 0 && target < 100 ? Math.ceil(cost / (1 - target / 100)) : 0;
 
   function update(id: number, patch: Partial<Row>) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -46,7 +43,7 @@ export function CostCalculator() {
         <div>
           <h2 className="text-base font-extrabold">Tannarx kalkulyatori</h2>
           <p className="text-xs text-muted-foreground">
-            Xomashyo narxlarini kiriting — 1 porsiya tannarxi va foydasi hisoblanadi.
+            1 porsiya (masalan, 1 ta somsa) uchun xomashyo miqdorini kiriting.
           </p>
         </div>
       </header>
@@ -56,7 +53,7 @@ export function CostCalculator() {
           <div key={r.id} className="grid grid-cols-12 gap-2">
             <Input
               className="col-span-4"
-              placeholder="Mahsulot (masalan, piyoz)"
+              placeholder="Mahsulot"
               value={r.name}
               onChange={(e) => update(r.id, { name: e.target.value })}
             />
@@ -80,9 +77,9 @@ export function CostCalculator() {
             <Input
               className="col-span-2"
               inputMode="decimal"
-              placeholder={USED_HINT[r.unit]}
-              value={r.used}
-              onChange={(e) => update(r.id, { used: e.target.value })}
+              placeholder={`1 porsiyaga (${AMOUNT_HINT[r.unit]})`}
+              value={r.amount}
+              onChange={(e) => update(r.id, { amount: e.target.value })}
             />
             <button
               type="button"
@@ -104,33 +101,26 @@ export function CostCalculator() {
         <Plus className="h-4 w-4" /> Xomashyo qo'shish
       </button>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Field label="Porsiyalar soni">
-          <Input inputMode="numeric" value={portions} onChange={(e) => setPortions(e.target.value)} />
-        </Field>
-        <Field label="Qo'shimcha xarajat (1 porsiya, so'm)">
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Field label="Qo'shimcha xarajat (so'm, 1 porsiya)">
           <Input inputMode="decimal" value={extra} onChange={(e) => setExtra(e.target.value)} />
         </Field>
         <Field label="Sotuv narxi (so'm)">
           <Input inputMode="decimal" value={sale} onChange={(e) => setSale(e.target.value)} />
         </Field>
-        <Field label="Kerakli foiz (%)">
+        <Field label="Kerakli foyda (%)">
           <Input inputMode="decimal" value={margin} onChange={(e) => setMargin(e.target.value)} />
         </Field>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Xomashyo jami" value={formatSum(ingredientsTotal)} />
-        <Stat label="1 porsiya tannarxi" value={formatSum(costPerPortion)} />
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Stat label="1 porsiya tannarxi" value={formatSum(cost)} />
         <Stat
-          label="Foyda (1 porsiya)"
-          value={salePrice > 0 ? `${formatSum(profit)} (${profitPct.toFixed(1)}%)` : "—"}
-          tone={salePrice > 0 ? (profit >= 0 ? "good" : "bad") : undefined}
+          label="Foyda"
+          value={price > 0 ? `${formatSum(profit)} (${profitPct.toFixed(1)}%)` : "—"}
+          tone={price > 0 ? (profit >= 0 ? "good" : "bad") : undefined}
         />
-        <Stat
-          label={`Tavsiya narx (${targetPct}% foyda)`}
-          value={suggested > 0 ? formatSum(Math.ceil(suggested)) : "—"}
-        />
+        <Stat label={`Tavsiya narx (${target}% foyda)`} value={suggested > 0 ? formatSum(suggested) : "—"} />
       </div>
     </section>
   );

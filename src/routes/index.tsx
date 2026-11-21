@@ -12,6 +12,7 @@ import { BrandMark } from "@/components/customer/brand-mark";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import heroImage from "@/assets/burger.jpg";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => {
@@ -43,6 +44,7 @@ export const Route = createFileRoute("/")({
 });
 
 function CustomerHome() {
+  const { t } = useT();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -96,7 +98,7 @@ function CustomerHome() {
             <ThemeToggle />
             <Link
               to="/auth"
-              aria-label="Admin panel"
+              aria-label={t("home_admin")}
               className="grid h-11 w-11 place-items-center rounded-full glass press text-foreground"
             >
               <LogIn className="h-5 w-5" />
@@ -112,7 +114,7 @@ function CustomerHome() {
         <section className="relative overflow-hidden rounded-[2rem] shadow-soft">
           <img
             src={heroImage}
-            alt="Yangi tayyorlangan burger"
+            alt={t("home_hero_alt")}
             width={800}
             height={600}
             fetchPriority="high"
@@ -121,10 +123,10 @@ function CustomerHome() {
           <div className="absolute inset-0 bg-linear-to-t from-background via-background/70 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
             <h1 className="max-w-lg font-display text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">
-              Issiq, tez va <span className="text-gradient">mazali</span>
+              {t("home_hero_title")} <span className="text-gradient">{t("home_hero_accent")}</span>
             </h1>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              Stoldan turmasdan buyurtma bering — oshxona darhol tayyorlashni boshlaydi.
+              {t("home_hero_sub")}
             </p>
           </div>
         </section>
@@ -135,8 +137,8 @@ function CustomerHome() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Taom qidirish..."
-            aria-label="Taom qidirish"
+            placeholder={t("home_search")}
+            aria-label={t("home_search")}
             className="w-full rounded-full glass py-4 pl-14 pr-5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
           />
         </div>
@@ -146,10 +148,10 @@ function CustomerHome() {
 
         {/* Categories */}
         <section>
-          <h2 className="mb-3 font-display text-lg font-extrabold text-foreground">Kategoriyalar</h2>
+          <h2 className="mb-3 font-display text-lg font-extrabold text-foreground">{t("home_categories")}</h2>
           <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
             <CategoryChip
-              label="Hammasi"
+              label={t("home_all")}
               emoji="✨"
               active={activeCategory === null}
               onClick={() => setActiveCategory(null)}
@@ -167,7 +169,7 @@ function CustomerHome() {
         </section>
 
         <Section
-          title={isFiltering ? "Natijalar" : "Ommabop mahsulotlar"}
+          title={isFiltering ? t("home_results") : t("home_popular")}
           icon={
             isFiltering ? (
               <Search className="h-4 w-4 text-primary" />
@@ -187,7 +189,7 @@ function CustomerHome() {
             ))}
           </Grid>
           {filtered.length === 0 ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">Hech narsa topilmadi.</p>
+            <p className="py-10 text-center text-sm text-muted-foreground">{t("home_nothing")}</p>
           ) : null}
         </Section>
 

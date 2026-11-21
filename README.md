@@ -19,7 +19,6 @@ npm run dev
 | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Server uchun Supabase ulanishi |
 | `ROOT_ADMIN_USERNAME` | Super admin login (standart: `lazizbek`) |
 | `ROOT_ADMIN_PASSWORD` | Super admin paroli (kodda saqlanmaydi) |
-| `GROQ_API_KEY` | AI tahlil uchun Groq kaliti (faqat server tomonda) |
 
 Muhim: `.env` fayli `.gitignore` ro'yxatida. Kalitlarni hech qachon GitHub'ga yuklamang.
 Deploy qilganda (Vercel, Netlify, VPS va h.k.) shu o'zgaruvchilarni hosting panelida kiriting.

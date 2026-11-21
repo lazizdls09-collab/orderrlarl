@@ -18,7 +18,7 @@ import {
   dailySalaryTotal,
   monthlySalaryTotal as monthlyTotal,
 } from "@/lib/employees";
-import { AiAnalyst } from "@/components/ai-analyst";
+import { CostCalculator } from "@/components/cost-calculator";
 import { supabase } from "@/integrations/supabase/client";
 import { formatSum, formatShort, STATUS_LABELS } from "@/lib/format";
 import { productImage } from "@/lib/food-images";
@@ -438,53 +438,7 @@ function Dashboard() {
         </div>
       </section>
 
-      <AiAnalyst
-        snapshot={{
-          valyuta: "so'm (UZS)",
-          bugun: {
-            tushum: revenue,
-            tannarx: cost,
-            xarajat: spent,
-            yalpi_foyda: grossProfit,
-            sof_foyda: netProfit,
-            buyurtmalar: today.length,
-          },
-          umumiy: {
-            tushum: totalRevenue,
-            tannarx: totalCost,
-            xarajat: totalSpent,
-            maosh: Math.round(totalSalary),
-            jami_foyda: totalProfit,
-            buyurtmalar: all.length,
-          },
-          xodimlar: staff.map((e) => ({
-            ism: e.name,
-            maosh: Number(e.salary_amount),
-            davr: e.salary_period,
-          })),
-          maosh: {
-            oylik_jami: Math.round(monthlySalaryTotal),
-            kunlik_ulush: Math.round(dailySalary),
-            foydadan_ayiriladi: deduct,
-          },
-          mahsulotlar: (products.data ?? []).map((p) => ({
-            nomi: p.name,
-            narx: Number(p.price),
-            tannarx: Number(p.cost_price),
-            foyda: Number(p.price) - Number(p.cost_price),
-          })),
-          bugungi_sotuvlar: daily.map((d) => ({
-            nomi: d.name,
-            soni: d.qty,
-            tushum: d.sum,
-            foyda: d.profit,
-          })),
-          oxirgi_7_kun: days,
-          xarajatlar: (expenses.data ?? [])
-            .slice(0, 40)
-            .map((e) => ({ nomi: e.title, summa: Number(e.amount), sana: e.spent_on })),
-        }}
-      />
+      <CostCalculator />
 
       <p className="text-xs text-muted-foreground">
         Menyuda {(products.data ?? []).length} ta mahsulot mavjud.

@@ -6,6 +6,7 @@ import { formatSum } from "@/lib/format";
 import { productImage } from "@/lib/food-images";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 
 export function ProductCard({
   product,
@@ -17,6 +18,7 @@ export function ProductCard({
   index: number;
 }) {
   const [qty, setQty] = useState(1);
+  const { t } = useT();
   const cart = useCart();
   const image = productImage(product.image_url, categorySlug, index);
   const price = Number(product.price);
@@ -35,7 +37,7 @@ export function ProductCard({
       },
       qty,
     );
-    toast.success(`${product.name} savatga qo'shildi`);
+    toast.success(t("card_added").replace("{name}", product.name));
     setQty(1);
   }
 
@@ -93,7 +95,7 @@ export function ProductCard({
           <div className="flex shrink-0 items-center gap-1 rounded-full bg-secondary p-1">
             <button
               type="button"
-              aria-label="Kamaytirish"
+              aria-label={t("qty_dec")}
               onClick={() => setQty((q) => Math.max(1, q - 1))}
               className="grid h-7 w-7 place-items-center rounded-full text-foreground press"
             >
@@ -102,7 +104,7 @@ export function ProductCard({
             <span className="w-5 text-center text-sm font-bold text-foreground">{qty}</span>
             <button
               type="button"
-              aria-label="Ko'paytirish"
+              aria-label={t("qty_inc")}
               onClick={() => setQty((q) => q + 1)}
               className="grid h-7 w-7 place-items-center rounded-full text-foreground press"
             >
@@ -117,7 +119,7 @@ export function ProductCard({
           className="inline-flex w-full items-center justify-center gap-2 rounded-2xl gradient-primary px-4 py-2.5 text-sm font-bold text-primary-foreground press shadow-glow"
         >
           <ShoppingBag className="h-4 w-4" />
-          Savatga
+          {t("card_add")}
         </button>
       </div>
     </motion.article>

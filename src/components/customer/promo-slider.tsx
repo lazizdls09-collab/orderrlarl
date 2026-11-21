@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Timer } from "lucide-react";
 import type { Promotion } from "@/lib/menu";
 import { useMediaUrl } from "@/lib/media";
+import { useT } from "@/lib/i18n";
 
 function useCountdown(target?: string | null) {
   const [left, setLeft] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export function PromoSlider({ promotions }: { promotions: Promotion[] }) {
     [promotions, now],
   );
 
+  const { t } = useT();
   const [i, setI] = useState(0);
   const active = live[i % Math.max(1, live.length)];
   const countdown = useCountdown(active?.ends_at);
@@ -97,7 +99,7 @@ export function PromoSlider({ promotions }: { promotions: Promotion[] }) {
               <div className="px-6 py-7 sm:px-9 sm:py-10">
                 <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full gradient-primary opacity-30 blur-3xl" />
                 <span className="inline-flex items-center rounded-full glass px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                  {active.discount_percent ? `${active.discount_percent}% chegirma` : "Aksiya"}
+                  {active.discount_percent ? t("promo_discount").replace("{n}", String(active.discount_percent)) : t("promo_label")}
                 </span>
                 <h2 className="mt-3 max-w-lg text-2xl font-extrabold text-foreground sm:text-3xl">
                   {active.title}
@@ -118,7 +120,7 @@ export function PromoSlider({ promotions }: { promotions: Promotion[] }) {
           {live.map((p, idx) => (
             <button
               key={p.id}
-              aria-label={`Aksiya ${idx + 1}`}
+              aria-label={t("promo_aria").replace("{n}", String(idx + 1))}
               onClick={() => setI(idx)}
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 idx === i % live.length ? "w-8 gradient-primary" : "w-3 bg-muted-foreground/40"

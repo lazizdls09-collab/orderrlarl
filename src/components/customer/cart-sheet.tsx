@@ -29,12 +29,14 @@ import { readProfile, saveProfile } from "@/lib/profile";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
+import { useT } from "@/lib/i18n";
 
 export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in" | "delivery" }) {
   const [mode, setMode] = useState<"dine_in" | "delivery">(initialMode);
   useEffect(() => {
     setMode(initialMode);
   }, [initialMode]);
+  const { t } = useT();
   const cart = useCart();
   const sendOrder = useServerFn(submitOrder);
   const [open, setOpen] = useState(false);
@@ -69,7 +71,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
 
   function detectLocation() {
     if (!("geolocation" in navigator)) {
-      toast.error("Qurilmangiz joylashuvni qo‘llab-quvvatlamaydi");
+      toast.error(t("cart_geo_unsupported"));
       return;
     }
     setLocating(true);
@@ -77,11 +79,11 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
       (pos) => {
         setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setLocating(false);
-        toast.success("Joylashuv aniqlandi");
+        toast.success(t("cart_located_at"));
       },
       () => {
         setLocating(false);
-        toast.error("Joylashuvga ruxsat berilmadi");
+        toast.error(t("cart_geo_denied"));
       },
       { enableHighAccuracy: true, timeout: 15000 },
     );
@@ -91,16 +93,16 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
     const orderType = mode;
     if (!cart.lines.length) return;
     if (orderType === "dine_in" && !cart.tableNumber.trim()) {
-      toast.error("Stol raqamini kiriting");
+      toast.error(t("cart_need_table"));
       return;
     }
     if (orderType === "delivery") {
       if (!coords) {
-        toast.error("Joylashuvingizni aniqlang");
+        toast.error(t("cart_need_location"));
         return;
       }
       if (!phone.trim()) {
-        toast.error("Telefon raqamingizni kiriting");
+        toast.error(t("cart_need_phone"));
         return;
       }
       saveProfile({ name: name.trim(), phone: phone.trim(), address: address.trim() });
@@ -136,7 +138,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
       setDone({ orderNo: order.orderNo, delivery: orderType === "delivery" });
       cart.clear();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Buyurtma yuborilmadi");
+      toast.error(e instanceof Error ? e.message : t("cart_failed"));
     } finally {
       setSending(false);
     }
@@ -174,7 +176,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
           ) : null}
           <span className="relative flex items-center gap-2 text-sm font-bold">
             <ShoppingBag className="h-5 w-5" />
-            Savat · {cart.count}
+            {t("cart_title")} · {cart.count}
           </span>
           <span className="relative text-sm font-extrabold">{formatSum(cart.total)}</span>
         </motion.button>
@@ -182,8 +184,8 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
 
       <SheetContent side="right" className="flex w-full flex-col gap-0 sm:max-w-md">
         <SheetHeader>
-          <SheetTitle className="font-display text-xl">Savat</SheetTitle>
-          <SheetDescription>Buyurtmangizni tasdiqlang</SheetDescription>
+          <SheetTitle className="font-display text-xl">{t("cart_title")}</SheetTitle>
+          <SheetDescription>{t("cart_subtitle")}</SheetDescription>
         </SheetHeader>
 
         {done ? null : (
@@ -198,7 +200,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
               }`}
             >
               <UtensilsCrossed className="h-4 w-4" />
-              Stolga yetkazish
+              {t("cart_dine")}
             </button>
             <button
               type="button"
@@ -210,7 +212,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
               }`}
             >
               <Bike className="h-4 w-4" />
-              Manzilga yetkazish
+              {t("cart_delivery")}
             </button>
           </div>
         )}
@@ -234,13 +236,11 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                   <ChefHat className="h-9 w-9" />
                 </motion.div>
                 <h3 className="text-xl font-extrabold text-foreground">
-                  Buyurtmangiz tayyorlanmoqda
+                  {t("cart_done_title")}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Buyurtma raqami #{done.orderNo}.{" "}
-                  {done.delivery
-                    ? "Kuryer tez orada ko‘rsatilgan manzilga yetkazadi. Holatini “Buyurtmalar” bo‘limida kuzating."
-                    : "Oshxona tayyorlashni boshladi, tez orada stolingizga keltiriladi."}
+                  {t("cart_done_no").replace("{n}", String(done.orderNo))}{" "}
+                  {done.delivery ? t("cart_done_delivery") : t("cart_done_dine")}
                 </p>
               </div>
               <button
@@ -250,7 +250,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                 }}
                 className="mt-6 w-full rounded-2xl gradient-primary py-4 text-sm font-extrabold text-primary-foreground press shadow-glow"
               >
-                Yopish
+                {t("cart_close")}
               </button>
             </motion.div>
 
@@ -259,7 +259,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
               <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
                 {cart.lines.length === 0 ? (
                   <p className="py-16 text-center text-sm text-muted-foreground">
-                    Savat bo‘sh. Menyudan mahsulot tanlang.
+                    {t("cart_empty")}
                   </p>
                 ) : (
                   cart.lines.map((l) => (
@@ -274,7 +274,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                         <div className="flex items-start justify-between gap-2">
                           <p className="truncate text-sm font-bold text-foreground">{l.name}</p>
                           <button
-                            aria-label="O'chirish"
+                            aria-label={t("cart_remove")}
                             onClick={() => cart.remove(l.productId)}
                             className="shrink-0 text-muted-foreground hover:text-destructive"
                           >
@@ -285,7 +285,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                         <div className="mt-2 flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1 rounded-full bg-secondary p-1">
                             <button
-                              aria-label="Kamaytirish"
+                              aria-label={t("qty_dec")}
                               onClick={() => cart.setQty(l.productId, l.quantity - 1)}
                               className="grid h-6 w-6 place-items-center rounded-full press"
                             >
@@ -293,7 +293,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                             </button>
                             <span className="w-5 text-center text-xs font-bold">{l.quantity}</span>
                             <button
-                              aria-label="Ko'paytirish"
+                              aria-label={t("qty_inc")}
                               onClick={() => cart.setQty(l.productId, l.quantity + 1)}
                               className="grid h-6 w-6 place-items-center rounded-full press"
                             >
@@ -312,11 +312,11 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                 <div className="space-y-3 pt-2">
                   {mode === "dine_in" ? (
                     <div>
-                      <Label htmlFor="table">Stol raqami</Label>
+                      <Label htmlFor="table">{t("cart_table")}</Label>
                       <Input
                         id="table"
                         inputMode="numeric"
-                        placeholder="Masalan: 7"
+                        placeholder={t("cart_table_ph")}
                         value={cart.tableNumber}
                         onChange={(e) => cart.setTableNumber(e.target.value)}
                         className="mt-1.5 rounded-xl"
@@ -325,18 +325,18 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                   ) : (
                     <>
                       <div>
-                        <Label htmlFor="c-name">Ismingiz</Label>
+                        <Label htmlFor="c-name">{t("cart_name")}</Label>
                         <Input
                           id="c-name"
                           maxLength={120}
-                          placeholder="Ismingiz"
+                          placeholder={t("cart_name")}
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           className="mt-1.5 rounded-xl"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="c-phone">Telefon</Label>
+                        <Label htmlFor="c-phone">{t("cart_phone")}</Label>
                         <Input
                           id="c-phone"
                           inputMode="tel"
@@ -348,7 +348,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                         />
                       </div>
                       <div>
-                        <Label>Yetkazish joyi</Label>
+                        <Label>{t("cart_place")}</Label>
                         <button
                           type="button"
                           onClick={detectLocation}
@@ -361,21 +361,21 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                           )}
                           <span className="min-w-0 flex-1 truncate">
                             {coords
-                              ? `Joylashuv aniqlandi (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})`
+                              ? `${t("cart_located_at")} (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})`
                               : locating
-                                ? "Aniqlanmoqda..."
-                                : "Joylashuvni aniqlash"}
+                                ? t("cart_locating")
+                                : t("cart_detect")}
                           </span>
                           {coords ? (
                             <span className="shrink-0 text-[11px] font-bold text-primary">
-                              Yangilash
+                              {t("cart_refresh")}
                             </span>
                           ) : null}
                         </button>
                         <Input
                           id="c-address"
                           maxLength={300}
-                          placeholder="Mo‘ljal (ixtiyoriy): podyezd, xonadon"
+                          placeholder={t("cart_landmark")}
                           value={address}
                           onChange={(e) => setAddress(e.target.value)}
                           className="mt-2 rounded-xl"
@@ -384,10 +384,10 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                     </>
                   )}
                   <div>
-                    <Label htmlFor="notes">Izoh</Label>
+                    <Label htmlFor="notes">{t("cart_notes")}</Label>
                     <Textarea
                       id="notes"
-                      placeholder="Masalan: achchiq sous qo‘shmang"
+                      placeholder={t("cart_notes_ph")}
                       value={cart.notes}
                       onChange={(e) => cart.setNotes(e.target.value)}
                       className="mt-1.5 rounded-xl"
@@ -398,7 +398,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
 
               <div className="border-t border-border p-4">
                 <div className="mb-3 flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Jami</span>
+                  <span className="text-sm text-muted-foreground">{t("cart_total")}</span>
                   <span className="text-xl font-extrabold text-foreground">
                     {formatSum(cart.total)}
                   </span>
@@ -413,7 +413,7 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                   ) : (
                     <UtensilsCrossed className="h-4 w-4" />
                   )}
-                  {sending ? "Yuborilmoqda..." : "Buyurtma berish"}
+                  {sending ? t("cart_sending") : t("cart_submit")}
                 </button>
               </div>
             </motion.div>

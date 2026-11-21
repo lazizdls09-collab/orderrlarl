@@ -3,6 +3,7 @@ import { Printer, ReceiptText } from "lucide-react";
 import { PageShell } from "@/components/customer/page-shell";
 import { useMyOrders } from "@/lib/use-my-orders";
 import { formatSum, formatDateTime } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/cheklar")({
   head: () => ({
@@ -63,25 +64,26 @@ table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}td{paddi
 }
 
 function ReceiptsPage() {
+  const { t } = useT();
   const { data, isLoading } = useMyOrders();
   const orders = data ?? [];
 
   return (
-    <PageShell title="Cheklar" subtitle="Bergan buyurtmalaringiz cheklari">
+    <PageShell title={t("rc_title")} subtitle={t("rc_subtitle")}>
       {isLoading ? (
-        <p className="py-16 text-center text-sm text-muted-foreground">Yuklanmoqda...</p>
+        <p className="py-16 text-center text-sm text-muted-foreground">{t("rc_loading")}</p>
       ) : orders.length === 0 ? (
         <div className="rounded-3xl glass p-8 text-center">
           <ReceiptText className="mx-auto h-10 w-10 text-muted-foreground" />
-          <p className="mt-3 text-sm font-bold text-foreground">Chek yo‘q</p>
+          <p className="mt-3 text-sm font-bold text-foreground">{t("rc_none")}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Birinchi buyurtmangizni bering — cheki shu yerda paydo bo‘ladi.
+            {t("rc_none_hint")}
           </p>
           <Link
             to="/"
             className="mt-5 inline-block rounded-2xl gradient-primary px-6 py-3 text-sm font-extrabold text-primary-foreground press shadow-glow"
           >
-            Menyuga o‘tish
+            {t("rc_go_menu")}
           </Link>
         </div>
       ) : (
@@ -89,15 +91,15 @@ function ReceiptsPage() {
           <article key={o.id} className="rounded-3xl glass p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-extrabold text-foreground">Chek #{o.order_no}</p>
+                <p className="text-sm font-extrabold text-foreground">{t("rc_check").replace("{n}", String(o.order_no))}</p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
                   {formatDateTime(o.created_at)} ·{" "}
-                  {o.order_type === "delivery" ? "Yetkazib berish" : `Stol ${o.table_number}`}
+                  {o.order_type === "delivery" ? t("rc_delivery") : t("rc_table").replace("{n}", o.table_number)}
                 </p>
               </div>
               <button
                 onClick={() => printReceipt(o as ReceiptOrder)}
-                aria-label="Chekni chop etish"
+                aria-label={t("rc_print")}
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground press"
               >
                 <Printer className="h-4 w-4" />
@@ -118,7 +120,7 @@ function ReceiptsPage() {
             </ul>
 
             <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-              <span className="text-xs text-muted-foreground">Jami</span>
+              <span className="text-xs text-muted-foreground">{t("cart_total")}</span>
               <span className="text-base font-extrabold text-foreground">{formatSum(o.total)}</span>
             </div>
           </article>

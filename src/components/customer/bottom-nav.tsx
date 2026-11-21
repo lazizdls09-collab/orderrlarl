@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Home, ClipboardList, ReceiptText, Settings } from "lucide-react";
 import { useT, type TKey } from "@/lib/i18n";
+import { useDeliveryNotifications } from "@/lib/delivery-notify";
 
 const items: { to: string; key: TKey; icon: typeof Home }[] = [
   { to: "/", key: "nav_home", icon: Home },
@@ -11,6 +12,10 @@ const items: { to: string; key: TKey; icon: typeof Home }[] = [
 
 export function BottomNav() {
   const { t } = useT();
+  useDeliveryNotifications((n) => ({
+    title: t("notify_delivered_title"),
+    body: t("notify_delivered_body").replace("{n}", String(n)),
+  }));
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 glass-strong border-t border-border pb-[env(safe-area-inset-bottom)]">
       <ul className="mx-auto grid max-w-lg grid-cols-4">

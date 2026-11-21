@@ -51,7 +51,8 @@ function Dashboard() {
   const [saving, setSaving] = useState(false);
   const [clearing, setClearing] = useState(false);
 
-  const all = (orders.data ?? []).filter((o) => o.status !== "cancelled");
+  // Faqat "yetkazildi" bosilgan buyurtmalar hisob-kitobga kiradi
+  const all = (orders.data ?? []).filter((o) => o.status === "delivered");
   const today = all.filter((o) => new Date(o.created_at) >= startOfDay());
 
   const revenue = today.reduce((s, o) => s + Number(o.total), 0);

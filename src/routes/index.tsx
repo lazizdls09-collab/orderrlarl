@@ -9,6 +9,7 @@ import { BottomNav } from "@/components/customer/bottom-nav";
 import { ProductCard } from "@/components/customer/product-card";
 import { PromoSlider } from "@/components/customer/promo-slider";
 import { BrandMark } from "@/components/customer/brand-mark";
+import { NotifyPrompt } from "@/components/notify-prompt";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import heroImage from "@/assets/burger.jpg";
@@ -108,6 +109,7 @@ function CustomerHome() {
       </header>
 
       <main className="mx-auto max-w-6xl space-y-10 px-4 pt-6">
+        <NotifyPrompt />
 
 
         {/* Hero */}

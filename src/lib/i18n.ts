@@ -72,6 +72,12 @@ const dict = {
     rc_table: "Stol {n}",
     rc_print: "Chekni chop etish",
     rc_check: "Chek #{n}",
+    notify_title: "Buyurtma holati",
+    notify_text: "Buyurtmangiz yetkazilganda xabar olasizmi?",
+    notify_allow: "Ruxsat berish",
+    notify_later: "Keyinroq",
+    notify_delivered_title: "Ovqatingiz yetkazildi 🧡",
+    notify_delivered_body: "Buyurtma #{n} yetkazildi. Yoqimli ishtaha!",
   },
   ru: {
     nav_home: "Главная",
@@ -143,6 +149,12 @@ const dict = {
     rc_table: "Стол {n}",
     rc_print: "Распечатать чек",
     rc_check: "Чек #{n}",
+    notify_title: "Статус заказа",
+    notify_text: "Получать уведомление, когда заказ доставят?",
+    notify_allow: "Разрешить",
+    notify_later: "Позже",
+    notify_delivered_title: "Ваш заказ доставлен 🧡",
+    notify_delivered_body: "Заказ №{n} доставлен. Приятного аппетита!",
   },
   en: {
     nav_home: "Home",
@@ -214,6 +226,12 @@ const dict = {
     rc_table: "Table {n}",
     rc_print: "Print receipt",
     rc_check: "Receipt #{n}",
+    notify_title: "Order updates",
+    notify_text: "Get notified when your order is delivered?",
+    notify_allow: "Allow",
+    notify_later: "Later",
+    notify_delivered_title: "Your order is delivered 🧡",
+    notify_delivered_body: "Order #{n} delivered. Enjoy your meal!",
   },
 } as const;
 

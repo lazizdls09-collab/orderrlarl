@@ -84,8 +84,20 @@ function Dashboard() {
   const monthSpent = (expenses.data ?? [])
     .filter((e) => new Date(e.spent_on) >= monthStart)
     .reduce((s, e) => s + Number(e.amount), 0);
-  const daysElapsed = new Date().getDate();
-  const monthSalary = deduct ? dailySalary * daysElapsed : 0;
+  // Har bir xodim maoshi faqat ishga qo'shilgan kundan boshlab, joriy oy ichida ayiriladi
+  const todayStart = startOfDay();
+  const monthSalary = deduct
+    ? staff
+        .filter((e) => e.is_active)
+        .reduce((sum, e) => {
+          const hired = startOfDay(new Date(e.created_at));
+          const from = hired > monthStart ? hired : monthStart;
+          const days = Math.max(0, Math.round((todayStart.getTime() - from.getTime()) / 86400000) + 1);
+          const share =
+            e.salary_period === "daily" ? Number(e.salary_amount) : Number(e.salary_amount) / 30;
+          return sum + share * days;
+        }, 0)
+    : 0;
   const monthProfit = monthRevenue - monthCost - monthSpent - monthSalary;
 
   async function clearAllData() {

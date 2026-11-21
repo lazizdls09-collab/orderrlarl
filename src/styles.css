@@ -176,13 +176,13 @@
 
 @utility glass {
   background: var(--surface);
-  backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(12px);
   border: 1px solid color-mix(in oklab, var(--foreground) 8%, transparent);
 }
 
 @utility glass-strong {
   background: var(--surface-strong);
-  backdrop-filter: blur(36px) saturate(200%);
+  backdrop-filter: blur(14px);
   border: 1px solid color-mix(in oklab, var(--foreground) 10%, transparent);
 }
 
@@ -263,5 +263,16 @@
 @media print {
   .no-print {
     display: none !important;
+  }
+}
+
+/* Telefonda blur juda og'ir — qattiq fon bilan almashtiramiz */
+@media (max-width: 767px) {
+  .glass {
+    backdrop-filter: none;
+    background: var(--surface-strong);
+  }
+  .glass-strong {
+    backdrop-filter: none;
   }
 }

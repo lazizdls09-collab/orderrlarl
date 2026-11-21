@@ -22,15 +22,11 @@ export function CostCalculator() {
   const [rows, setRows] = useState<Row[]>(() => [newRow()]);
   const [extra, setExtra] = useState("");
   const [sale, setSale] = useState("");
-  const [margin, setMargin] = useState("40");
 
   const ingredients = useMemo(() => rows.reduce((s, r) => s + rowCost(r), 0), [rows]);
   const cost = ingredients + (Number(extra) || 0);
   const price = Number(sale) || 0;
   const profit = price - cost;
-  const profitPct = price > 0 ? (profit / price) * 100 : 0;
-  const target = Number(margin) || 0;
-  const suggested = target > 0 && target < 100 ? Math.ceil(cost / (1 - target / 100)) : 0;
 
   function update(id: number, patch: Partial<Row>) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -43,7 +39,7 @@ export function CostCalculator() {
         <div>
           <h2 className="text-base font-extrabold">Tannarx kalkulyatori</h2>
           <p className="text-xs text-muted-foreground">
-            1 porsiya (masalan, 1 ta somsa) uchun xomashyo miqdorini kiriting.
+            1 ta taom uchun xomashyo miqdorini kiriting.
           </p>
         </div>
       </header>
@@ -101,26 +97,22 @@ export function CostCalculator() {
         <Plus className="h-4 w-4" /> Xomashyo qo'shish
       </button>
 
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Field label="Qo'shimcha xarajat (so'm, 1 porsiya)">
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Field label="Qo'shimcha xarajat (so'm)">
           <Input inputMode="decimal" value={extra} onChange={(e) => setExtra(e.target.value)} />
         </Field>
         <Field label="Sotuv narxi (so'm)">
           <Input inputMode="decimal" value={sale} onChange={(e) => setSale(e.target.value)} />
         </Field>
-        <Field label="Kerakli foyda (%)">
-          <Input inputMode="decimal" value={margin} onChange={(e) => setMargin(e.target.value)} />
-        </Field>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Stat label="1 porsiya tannarxi" value={formatSum(cost)} />
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Stat label="Tannarx" value={formatSum(cost)} />
         <Stat
-          label="Foyda"
-          value={price > 0 ? `${formatSum(profit)} (${profitPct.toFixed(1)}%)` : "—"}
+          label="Foyda (1 ta)"
+          value={price > 0 ? formatSum(profit) : "—"}
           tone={price > 0 ? (profit >= 0 ? "good" : "bad") : undefined}
         />
-        <Stat label={`Tavsiya narx (${target}% foyda)`} value={suggested > 0 ? formatSum(suggested) : "—"} />
       </div>
     </section>
   );

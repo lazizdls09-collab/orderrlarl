@@ -244,7 +244,10 @@ export function CartSheet({ initialMode = "dine_in" }: { initialMode?: "dine_in"
                 </p>
               </div>
               <button
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  setDone(null);
+                }}
                 className="mt-6 w-full rounded-2xl gradient-primary py-4 text-sm font-extrabold text-primary-foreground press shadow-glow"
               >
                 Yopish

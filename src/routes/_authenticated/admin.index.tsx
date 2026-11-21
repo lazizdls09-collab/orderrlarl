@@ -49,6 +49,7 @@ function Dashboard() {
     period: "daily" | "monthly";
   }>({ open: false, name: "", amount: "", period: "monthly" });
   const [saving, setSaving] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const all = (orders.data ?? []).filter((o) => o.status !== "cancelled");
   const today = all.filter((o) => new Date(o.created_at) >= startOfDay());
@@ -70,18 +71,39 @@ function Dashboard() {
   const grossProfit = revenue - cost;
   const netProfit = grossProfit - spent - (deduct ? dailySalary : 0);
 
-  // Umumiy (barcha vaqt) foyda
-  const totalRevenue = all.reduce((s, o) => s + Number(o.total), 0);
-  const totalCost = all.reduce(
+  // Joriy oy foydasi — oy almashganda avtomatik boshidan hisoblanadi
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+  const monthOrders = all.filter((o) => new Date(o.created_at) >= monthStart);
+  const monthRevenue = monthOrders.reduce((s, o) => s + Number(o.total), 0);
+  const monthCost = monthOrders.reduce(
     (s, o) => s + o.order_items.reduce((c, i) => c + Number(i.unit_cost) * i.quantity, 0),
     0,
   );
-  const totalSpent = (expenses.data ?? []).reduce((s, e) => s + Number(e.amount), 0);
-  const daysWithSales = new Set(
-    all.map((o) => startOfDay(new Date(o.created_at)).toISOString()),
-  ).size;
-  const totalSalary = deduct ? dailySalary * Math.max(1, daysWithSales) : 0;
-  const totalProfit = totalRevenue - totalCost - totalSpent - totalSalary;
+  const monthSpent = (expenses.data ?? [])
+    .filter((e) => new Date(e.spent_on) >= monthStart)
+    .reduce((s, e) => s + Number(e.amount), 0);
+  const daysElapsed = new Date().getDate();
+  const monthSalary = deduct ? dailySalary * daysElapsed : 0;
+  const monthProfit = monthRevenue - monthCost - monthSpent - monthSalary;
+
+  async function clearAllData() {
+    if (!window.confirm("Barcha buyurtmalar va xarajatlar o'chiriladi. Bu qaytarib bo'lmaydi. Davom etasizmi?")) return;
+    setClearing(true);
+    try {
+      const { error: e1 } = await supabase.from("orders").delete().not("id", "is", null);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase.from("expenses").delete().not("id", "is", null);
+      if (e2) throw e2;
+      await queryClient.invalidateQueries();
+      toast.success("Ma'lumotlar tozalandi");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Tozalashda xatolik");
+    } finally {
+      setClearing(false);
+    }
+  }
 
 
   // so'nggi 7 kun
@@ -206,8 +228,8 @@ function Dashboard() {
         />
         <Stat
           icon={<PiggyBank className="h-4 w-4" />}
-          label="Jami foyda"
-          value={formatSum(totalProfit)}
+          label="Oylik foyda"
+          value={formatSum(monthProfit)}
           delay={0.15}
         />
       </div>
@@ -345,6 +367,17 @@ function Dashboard() {
         </div>
       </section>
 
+
+      <section className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => void clearAllData()}
+          disabled={clearing}
+          className="rounded-2xl border border-destructive/40 px-4 py-2.5 text-sm font-bold text-destructive press disabled:opacity-50"
+        >
+          {clearing ? "Tozalanmoqda..." : "Barcha ma'lumotlarni tozalash"}
+        </button>
+      </section>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <section className="rounded-3xl glass p-5">

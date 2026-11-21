@@ -8,9 +8,9 @@
   "theme_color": "#0d0d0d",
   "icons": [
     {
-      "src": "/burger.jpg",
+      "src": "/burger.png",
       "sizes": "any",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

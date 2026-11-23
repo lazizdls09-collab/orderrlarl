@@ -268,11 +268,9 @@
 
 /* Telefonda blur juda og'ir — qattiq fon bilan almashtiramiz */
 @media (max-width: 767px) {
-  .glass {
-    backdrop-filter: none;
-    background: var(--surface-strong);
-  }
+  .glass,
   .glass-strong {
     backdrop-filter: none;
+    background: var(--card);
   }
 }

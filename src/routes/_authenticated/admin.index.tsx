@@ -484,7 +484,7 @@ function Dashboard() {
         </div>
       </section>
 
-      <CostCalculator />
+      <CostCalculator products={products.data ?? []} />
 
       <p className="text-xs text-muted-foreground">
         Menyuda {(products.data ?? []).length} ta mahsulot mavjud.

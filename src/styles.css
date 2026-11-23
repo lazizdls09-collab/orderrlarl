@@ -271,6 +271,15 @@
   .glass,
   .glass-strong {
     backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     background: var(--card);
+    background-color: var(--card);
+    isolation: isolate;
+  }
+  /* Mahsulot kartalari: o'z qatlamida, ustki/yonidagi qatlamlar bilan aralashmasin */
+  .product-card {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    contain: paint;
   }
 }

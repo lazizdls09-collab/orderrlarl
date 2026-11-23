@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Calculator, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatSum } from "@/lib/format";
+import type { Product } from "@/lib/menu";
 
 type Unit = "kg" | "l" | "dona";
 type Row = { id: number; name: string; price: string; amount: string; unit: Unit };
@@ -18,8 +19,10 @@ function rowCost(r: Row) {
 
 const AMOUNT_HINT: Record<Unit, string> = { kg: "gramm", l: "ml", dona: "dona" };
 
-export function CostCalculator() {
+export function CostCalculator({ products = [] }: { products?: Product[] }) {
   const [rows, setRows] = useState<Row[]>(() => [newRow()]);
+  const [productId, setProductId] = useState("");
+  const selected = products.find((p) => p.id === productId) ?? null;
   const [extra, setExtra] = useState("");
   const [sale, setSale] = useState("");
 
@@ -27,6 +30,12 @@ export function CostCalculator() {
   const cost = ingredients + (Number(extra) || 0);
   const price = Number(sale) || 0;
   const profit = price - cost;
+
+  function pickProduct(id: string) {
+    setProductId(id);
+    const p = products.find((x) => x.id === id);
+    if (p) setSale(String(Number(p.price)));
+  }
 
   function update(id: number, patch: Partial<Row>) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -43,6 +52,22 @@ export function CostCalculator() {
           </p>
         </div>
       </header>
+
+      <label className="mb-4 block space-y-1">
+        <span className="text-xs text-muted-foreground">Mahsulot (ixtiyoriy)</span>
+        <select
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          value={productId}
+          onChange={(e) => pickProduct(e.target.value)}
+        >
+          <option value="">— tanlang —</option>
+          {products.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <div className="space-y-2">
         {rows.map((r) => (
@@ -107,13 +132,22 @@ export function CostCalculator() {
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Stat label="Tannarx" value={formatSum(cost)} />
+        <Stat
+          label={selected ? `Tannarx (1 ta ${selected.name})` : "Tannarx (1 ta)"}
+          value={formatSum(cost)}
+        />
         <Stat
           label="Foyda (1 ta)"
           value={price > 0 ? formatSum(profit) : "—"}
           tone={price > 0 ? (profit >= 0 ? "good" : "bad") : undefined}
         />
       </div>
+      {selected ? (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Bazadagi saqlangan tannarx: {formatSum(Number(selected.cost_price) || 0)} · sotuv narxi
+          avtomatik to'ldirildi.
+        </p>
+      ) : null}
     </section>
   );
 }

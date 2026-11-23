@@ -47,7 +47,7 @@ export function ProductCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: (index % 6) * 0.04 }}
-      className="group flex flex-col overflow-hidden rounded-3xl glass md:shadow-soft"
+      className="product-card group flex flex-col overflow-hidden rounded-3xl glass md:shadow-soft"
     >
       <div className="relative aspect-[4/3] overflow-hidden">
         <img

@@ -19,6 +19,18 @@ import {
   monthlySalaryTotal as monthlyTotal,
 } from "@/lib/employees";
 import { CostCalculator } from "@/components/cost-calculator";
+import { ClosingPanel } from "@/components/closing-panel";
+import { ReportsSection } from "@/components/reports-section";
+import {
+  salaryPaymentsQuery,
+  dayClosingsQuery,
+  monthClosingsQuery,
+  accruedInMonth,
+  outstandingOf,
+  paidInMonth,
+  dayKey,
+  monthKeyOf,
+} from "@/lib/closings";
 import { supabase } from "@/integrations/supabase/client";
 import { formatSum, formatShort, STATUS_LABELS } from "@/lib/format";
 import { productImage } from "@/lib/food-images";
@@ -41,6 +53,9 @@ function Dashboard() {
   const expenses = useQuery(expensesQuery);
   const settings = useQuery(settingsQuery);
   const employees = useQuery(employeesQuery);
+  const payments = useQuery(salaryPaymentsQuery);
+  const dayClosings = useQuery(dayClosingsQuery);
+  const monthClosings = useQuery(monthClosingsQuery);
   const queryClient = useQueryClient();
   const [form, setForm] = useState<{
     open: boolean;
@@ -50,6 +65,7 @@ function Dashboard() {
   }>({ open: false, name: "", amount: "", period: "monthly" });
   const [saving, setSaving] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   // Faqat "yetkazildi" bosilgan buyurtmalar hisob-kitobga kiradi
   const all = (orders.data ?? []).filter((o) => o.status === "delivered");
@@ -90,14 +106,7 @@ function Dashboard() {
   const monthSalary = deduct
     ? staff
         .filter((e) => e.is_active)
-        .reduce((sum, e) => {
-          const hired = startOfDay(new Date(e.created_at));
-          const from = hired > monthStart ? hired : monthStart;
-          const days = Math.max(0, Math.round((todayStart.getTime() - from.getTime()) / 86400000) + 1);
-          const share =
-            e.salary_period === "daily" ? Number(e.salary_amount) : Number(e.salary_amount) / 30;
-          return sum + share * days;
-        }, 0)
+        .reduce((sum, e) => sum + accruedInMonth(e, monthStart, todayStart), 0)
     : 0;
   const monthProfit = monthRevenue - monthCost - monthSpent - monthSalary;
 
@@ -218,6 +227,90 @@ function Dashboard() {
   }
 
 
+  const paymentList = payments.data ?? [];
+  const todayKey = dayKey(new Date());
+  const monthKey = monthKeyOf(new Date());
+  const todayClosed = (dayClosings.data ?? []).some((d) => d.day === todayKey);
+  const monthClosed = (monthClosings.data ?? []).some((m) => m.month === monthKey);
+
+  async function paySalary(id: string, name: string, amount: number) {
+    if (amount <= 0) return;
+    if (!window.confirm(`${name}ga ${formatSum(amount)} to'landi deb belgilansinmi?`)) return;
+    const { error } = await supabase
+      .from("salary_payments")
+      .insert({ employee_id: id, amount, paid_on: dayKey(new Date()) });
+    if (error) {
+      toast.error("To'lov saqlanmadi");
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["salary_payments"] });
+    toast.success("To'lov belgilandi");
+  }
+
+  async function closeDay() {
+    if (!window.confirm("Bugungi kun yopiladi va raqamlar saqlanadi. Davom etasizmi?")) return;
+    setClosing(true);
+    const { error } = await supabase.from("day_closings").insert({
+      day: todayKey,
+      revenue: Math.round(revenue),
+      cost: Math.round(cost),
+      expenses: Math.round(spent),
+      salary: Math.round(deduct ? dailySalary : 0),
+      profit: Math.round(netProfit),
+      orders_count: today.length,
+    });
+    setClosing(false);
+    if (error) {
+      toast.error(error.code === "23505" ? "Bu kun allaqachon yopilgan" : "Kun yopilmadi");
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["day_closings"] });
+    toast.success("Kun yopildi");
+  }
+
+  async function closeMonth() {
+    if (!window.confirm(`${monthKey} oyi yopiladi va hisobot saqlanadi. Davom etasizmi?`)) return;
+    setClosing(true);
+    const monthDays = (dayClosings.data ?? [])
+      .filter((d) => d.day.startsWith(monthKey))
+      .sort((a, b) => a.day.localeCompare(b.day))
+      .map((d) => ({
+        day: d.day,
+        orders_count: d.orders_count,
+        revenue: Number(d.revenue),
+        cost: Number(d.cost),
+        expenses: Number(d.expenses),
+        salary: Number(d.salary),
+        profit: Number(d.profit),
+      }));
+    const monthEmployees = staff
+      .filter((e) => e.is_active)
+      .map((e) => ({
+        name: e.name,
+        period: e.salary_period,
+        amount: Number(e.salary_amount),
+        accrued: Math.round(accruedInMonth(e, monthStart, todayStart)),
+        paid: Math.round(paidInMonth(e.id, paymentList, monthKey)),
+        outstanding: outstandingOf(e, paymentList, todayStart),
+      }));
+    const { error } = await supabase.from("month_closings").insert({
+      month: monthKey,
+      revenue: Math.round(monthRevenue),
+      cost: Math.round(monthCost),
+      expenses: Math.round(monthSpent),
+      salary: Math.round(monthSalary),
+      profit: Math.round(monthProfit),
+      details: { days: monthDays, employees: monthEmployees },
+    });
+    setClosing(false);
+    if (error) {
+      toast.error(error.code === "23505" ? "Bu oy allaqachon yopilgan" : "Oy yopilmadi");
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["month_closings"] });
+    toast.success("Oy yopildi");
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -330,9 +423,16 @@ function Dashboard() {
           ) : (
             staff.map((p) => (
               <div key={p.id} className="flex items-center gap-2 rounded-2xl bg-secondary p-3">
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
-                  {p.name}
-                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-foreground">
+                    {p.name}
+                  </span>
+                  {p.is_active ? (
+                    <span className="block text-[11px] text-muted-foreground">
+                      Qoldiq: {formatSum(outstandingOf(p, paymentList, todayStart))}
+                    </span>
+                  ) : null}
+                </div>
                 <input
                   inputMode="numeric"
                   defaultValue={String(Number(p.salary_amount))}
@@ -354,6 +454,17 @@ function Dashboard() {
                 >
                   {p.salary_period === "daily" ? "so‘m/kun" : "so‘m/oy"}
                 </button>
+                {p.is_active && outstandingOf(p, paymentList, todayStart) > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void paySalary(p.id, p.name, outstandingOf(p, paymentList, todayStart))
+                    }
+                    className="shrink-0 rounded-xl gradient-primary px-2.5 py-2 text-[11px] font-extrabold text-primary-foreground press"
+                  >
+                    To‘landi
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   aria-label="O‘chirish"
@@ -483,6 +594,18 @@ function Dashboard() {
           )}
         </div>
       </section>
+
+      <ClosingPanel
+        todayKey={todayKey}
+        todayClosed={todayClosed}
+        monthKey={monthKey}
+        monthClosed={monthClosed}
+        busy={closing}
+        onCloseDay={() => void closeDay()}
+        onCloseMonth={() => void closeMonth()}
+      />
+
+      <ReportsSection closings={monthClosings.data ?? []} />
 
       <CostCalculator products={products.data ?? []} />
 

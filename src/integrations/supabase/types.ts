@@ -77,6 +77,24 @@ export type Database = {
         }
         Relationships: []
       }
+      salary_payments: {
+        Row: { amount: number; created_at: string; employee_id: string; id: string; paid_on: string }
+        Insert: { amount?: number; created_at?: string; employee_id: string; id?: string; paid_on?: string }
+        Update: { amount?: number; created_at?: string; employee_id?: string; id?: string; paid_on?: string }
+        Relationships: []
+      }
+      day_closings: {
+        Row: { cost: number; closed_at: string; day: string; expenses: number; orders_count: number; profit: number; revenue: number; salary: number }
+        Insert: { closed_at?: string; cost?: number; day: string; expenses?: number; orders_count?: number; profit?: number; revenue?: number; salary?: number }
+        Update: { closed_at?: string; cost?: number; day?: string; expenses?: number; orders_count?: number; profit?: number; revenue?: number; salary?: number }
+        Relationships: []
+      }
+      month_closings: {
+        Row: { closed_at: string; cost: number; details: Json; expenses: number; month: string; profit: number; revenue: number; salary: number }
+        Insert: { closed_at?: string; cost?: number; details?: Json; expenses?: number; month: string; profit?: number; revenue?: number; salary?: number }
+        Update: { closed_at?: string; cost?: number; details?: Json; expenses?: number; month?: string; profit?: number; revenue?: number; salary?: number }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number

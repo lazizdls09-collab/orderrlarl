@@ -47,7 +47,7 @@ export function ProductCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: (index % 6) * 0.04 }}
-      className="group flex flex-col overflow-hidden rounded-3xl glass shadow-soft"
+      className="group flex flex-col overflow-hidden rounded-3xl glass md:shadow-soft"
     >
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
@@ -56,7 +56,7 @@ export function ProductCard({
           loading="lazy"
           width={800}
           height={600}
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-700 md:group-hover:scale-105"
         />
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
           {product.badge ? (

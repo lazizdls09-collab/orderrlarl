@@ -63,32 +63,32 @@ function SettingsPage() {
 
   async function sendFeedback() {
     if (message.trim().length < 3) {
-      toast.error("Fikringizni yozing");
+      toast.error(t("s_feedback_empty"));
       return;
     }
     setSending(true);
     try {
       await submitFeedback({ rating, message });
       setMessage("");
-      toast.success("Fikringiz uchun rahmat!");
+      toast.success(t("s_feedback_thanks"));
     } catch {
-      toast.error("Yuborib bo‘lmadi");
+      toast.error(t("s_feedback_failed"));
     } finally {
       setSending(false);
     }
   }
 
   return (
-    <PageShell title="Sozlamalar" subtitle="Ilova ko‘rinishi, til va fikringiz">
+    <PageShell title={t("s_title")} subtitle={t("s_subtitle")}>
       <section className="rounded-3xl glass p-4">
-        <h2 className="font-display text-base font-extrabold text-foreground">Ko‘rinish</h2>
+        <h2 className="font-display text-base font-extrabold text-foreground">{t("s_appearance")}</h2>
         <button
           onClick={toggleTheme}
           className="mt-3 flex w-full items-center justify-between gap-3 rounded-2xl bg-secondary px-4 py-3.5 press"
         >
           <span className="flex items-center gap-2 text-sm font-bold text-foreground">
             {dark ? <Moon className="h-4 w-4 text-primary" /> : <Sun className="h-4 w-4 text-primary" />}
-            Tungi rejim
+            {t("s_dark")}
           </span>
           <span
             className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
@@ -129,16 +129,16 @@ function SettingsPage() {
       <section className="rounded-3xl glass p-4">
         <h2 className="flex items-center gap-2 font-display text-base font-extrabold text-foreground">
           <MessageSquareHeart className="h-4 w-4 text-primary" />
-          Fikr bildirish
+          {t("s_feedback")}
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Fikringiz anonim yuboriladi — ism kerak emas.
+          {t("s_feedback_hint")}
         </p>
         <div className="mt-3 flex gap-1.5">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
-              aria-label={`${n} yulduz`}
+              aria-label={t("s_stars").replace("{n}", String(n))}
               onClick={() => setRating(n)}
               className="press"
             >
@@ -152,14 +152,14 @@ function SettingsPage() {
         </div>
         <div className="mt-3 space-y-3">
           <div>
-            <Label htmlFor="f-message">Fikringiz</Label>
+            <Label htmlFor="f-message">{t("s_feedback_label")}</Label>
             <textarea
               id="f-message"
               value={message}
               maxLength={2000}
               rows={4}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Nima yoqdi, nimani yaxshilaymiz?"
+              placeholder={t("s_feedback_placeholder")}
               className="mt-1.5 w-full rounded-xl bg-secondary px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
@@ -168,17 +168,17 @@ function SettingsPage() {
             disabled={sending}
             className="w-full rounded-2xl gradient-primary py-3.5 text-sm font-extrabold text-primary-foreground press shadow-glow disabled:opacity-50"
           >
-            {sending ? "Yuborilmoqda..." : "Fikrni yuborish"}
+            {sending ? t("s_feedback_sending") : t("s_feedback_send")}
           </button>
         </div>
       </section>
 
       <section className="rounded-3xl glass p-4">
-        <h2 className="font-display text-base font-extrabold text-foreground">Restoran</h2>
+        <h2 className="font-display text-base font-extrabold text-foreground">{t("s_restaurant")}</h2>
         <ul className="mt-3 space-y-2 text-xs text-muted-foreground">
           <li className="flex items-center gap-2">
             <MapPin className="h-4 w-4 shrink-0 text-primary" />
-            {settings?.address ?? "Manzil ko‘rsatilmagan"}
+            {settings?.address ?? t("s_no_address")}
           </li>
           <li className="flex items-center gap-2">
             <Phone className="h-4 w-4 shrink-0 text-primary" />
